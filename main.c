@@ -97,15 +97,35 @@ void add_product() {
 
     printf("Enter the name of the product: ");
     scanf("%49s", name);
+
+    for (int i = 0; i < product_count; i++) {
+        if (strcmp(name, warehouse[i].name) == 0) {
+            printf("Product with this name already exists!\n");
+            return;
+        }
+    }
+    strcpy(warehouse[product_count].name, name);
+
+
     printf("Enter the price of the product: ");
     scanf("%d", &price);
+    if (price >= 0) {
+        warehouse[product_count].price = price;
+    } else {
+        printf("Invalid price.\n");
+        return;
+    }
+
     printf("Enter the quantity of the product: ");
     scanf("%d", &quantity);
+    if (quantity >= 0) {
+        warehouse[product_count].quantity = quantity;
+    } else {
+        printf("Invalid quantity.\n");
+        return;
+    }
 
     warehouse[product_count].index = product_count;
-    strcpy(warehouse[product_count].name, name);
-    warehouse[product_count].price = price;
-    warehouse[product_count].quantity = quantity;
 
     printf("New product added!"
            "Product name: %s\n", name);
@@ -123,8 +143,12 @@ void show_product_info(const int product_index) {
     printf("ID: %d\n", warehouse[product_index].index);
     printf("Name: %s\n", warehouse[product_index].name);
     printf("Price: %d Kč\n", warehouse[product_index].price);
-    printf("Quantity: %d pcs\n", warehouse[product_index].quantity);
-    printf("Total value: %d Kč\n", warehouse[product_index].price * warehouse[product_index].quantity);
+    if (warehouse[product_index].quantity > 0) {
+        printf("Quantity: %d\n", warehouse[product_index].quantity);
+        printf("Total value: %d Kč\n", warehouse[product_index].price * warehouse[product_index].quantity);
+    } else {
+        printf("Out of stock.\n");
+    }
     printf("═══════════════════════════════════════\n\n");
 }
 
@@ -187,12 +211,16 @@ void search_product_by_price() {
         return;
     }
 
-    int search_price;
-    printf("Enter the price of the product: ");
-    scanf("%d", &search_price);
+    int search_min_price;
+    int search_max_price;
+    printf("Enter the minimal price of the product: ");
+    scanf("%d", &search_min_price);
+    printf("Enter the maximal price of the product: ");
+    scanf("%d", &search_max_price);
+
     int found = 0;
     for (int i = 0; i < product_count; i++) {
-        if (search_price == warehouse[i].price) {
+        if (search_max_price >= warehouse[i].price && search_min_price <= warehouse[i].price) {
             printf("Product Found!\n");
             show_product_info(i);
             found = 1;
@@ -249,14 +277,19 @@ int edit_menu() {
 
 // Úprava jména produktu
 void edit_name(int product_index) {
-
     char new_name[50];
     printf("Enter the new product name: ");
     scanf("%49s", new_name);
 
-    strcpy(warehouse[product_index].name, new_name);
+    for (int i = 0; i < product_count; i++) {
+        if (i != product_index && strcmp(new_name, warehouse[i].name) == 0) {
+            printf("Product with this name already exists!\n");
+            return;
+        }
+    }
 
-    printf("Name updated!"
+    strcpy(warehouse[product_index].name, new_name);
+    printf("Name updated!\n"
            "New product name: %s\n", new_name);
 }
 
@@ -266,8 +299,13 @@ void edit_price(int product_index) {
     printf("Enter the new price of the product: ");
     scanf("%d", &new_price);
 
+    if (new_price < 0) {
+        printf("Invalid price.\n");
+        return;
+    }
     warehouse[product_index].price = new_price;
-    printf("Price updated!");
+
+    printf("Price updated!\n");
     printf("New price: %d\n", warehouse[product_index].price);
 }
 
@@ -277,8 +315,13 @@ void edit_quantity(int product_index) {
     printf("Enter the new quantity of the product: ");
     scanf("%d", &new_quantity);
 
+    if (new_quantity < 0) {
+        printf("Invalid quantity. Must be >= 0\n");
+        return;
+    }
+
     warehouse[product_index].quantity = new_quantity;
-    printf("Quantity updated!");
+    printf("Quantity updated!\n");
     printf("New quantity: %d\n", warehouse[product_index].quantity);
 }
 
@@ -340,9 +383,16 @@ void menu(void) {
     } while (choice <= 8);
 }
 
+// Hlavní loop
 int main(void) {
-    load_test_data();
-    menu();
+    printf("Load test data? (1 = Yes, 0 = No): ");
+    int load_test;
+    scanf("%d", &load_test);
 
+    if (load_test) {
+        load_test_data();
+    }
+
+    menu();
     return 0;
 }
